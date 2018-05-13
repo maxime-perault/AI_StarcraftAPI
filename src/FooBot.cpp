@@ -18,6 +18,8 @@ void FooBot::OnGameStart()
 	mv_startLocation = mpc_observation->GetStartLocation();
 	mc_scv.mv_startLocation = mv_startLocation;
 
+	mc_gameinfo = Observation()->GetGameInfo();
+
 	mv_nb_ccs = 1;
 	mv_current_nb_ccs = 1;
 
@@ -66,6 +68,7 @@ void	FooBot::OnUnitIdle(const sc2::Unit* p_unit)
 		case sc2::UNIT_TYPEID::TERRAN_BARRACKS:
 		{
 			mpc_action->UnitCommand(p_unit, sc2::ABILITY_ID::TRAIN_MARINE);
+			mpc_action->UnitCommand(p_unit, sc2::ABILITY_ID::RALLY_BUILDING, mv_startLocation);
 		}
 		default: break;
 	}
@@ -267,7 +270,7 @@ void	FooBot::OnStep()
 
 		//BUILD REFINERY
 		else if ((mpc_observation->GetMinerals() >= 75)
-			&& (mv_current_nb_refinery <(mv_nb_ccs * 2))
+			&& (mv_current_nb_refinery < (mv_nb_ccs * 2))
 			&& (mv_current_nb_refinery == mv_nb_refinery))
 		{
 			if (mc_scv.TryBuildVespeneExtractor() == true)
@@ -276,7 +279,7 @@ void	FooBot::OnStep()
 
 		//BUILD BARRACKS
 		else if ((mpc_observation->GetMinerals() >= 150)
-			&& (mv_current_nb_barracks < 4)
+			&& (mv_current_nb_barracks < (mv_nb_ccs * 2))
 			&& (mv_current_nb_barracks == mv_nb_barracks))
 		{
 			if (mc_scv.TryBuildBarracks() == true)
@@ -290,6 +293,41 @@ void	FooBot::OnStep()
 		{
 			if (mc_scv.TryExpand(mpc_expansions) == true)
 				++mv_current_nb_ccs;
+		}
+
+		//ATTACK
+		sc2::Units	p_marines = mpc_observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
+		sc2::Units	p_enemies = mpc_observation->GetUnits(sc2::Unit::Alliance::Enemy);
+
+		if (p_marines.empty() || p_marines.size() < 40)
+			return;
+
+		if (p_enemies.empty())
+		{
+			if (!mc_gameinfo.enemy_start_locations.empty())
+			{
+				for (const auto& rp_marine : p_marines)
+				{
+					//If they are already attacking, break
+					if (rp_marine != nullptr
+						&& rp_marine->orders.size() > 0
+						&& rp_marine->orders[0].ability_id == sc2::ABILITY_ID::ATTACK)
+						break;
+					mpc_action->UnitCommand(rp_marine, sc2::ABILITY_ID::ATTACK, mc_gameinfo.enemy_start_locations.front());
+				}
+			}
+		}
+		else
+		{
+			for (const auto& rp_marine : p_marines)
+			{
+				//If they are already attacking, break
+				if (rp_marine != nullptr
+					&& rp_marine->orders.size() > 0
+					&& rp_marine->orders[0].ability_id == sc2::ABILITY_ID::ATTACK)
+					break;
+				mpc_action->UnitCommand(rp_marine, sc2::ABILITY_ID::ATTACK, p_enemies.front()->pos);
+			}
 		}
 	}
 }

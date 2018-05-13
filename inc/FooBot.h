@@ -37,6 +37,7 @@ private:
     const sc2::ObservationInterface*    mpc_observation;
     sc2::ObserverActionInterface*       mpc_action_observation;
     sc2::QueryInterface*                mpc_query;
+    sc2::GameInfo                       mc_gameinfo;
     std::vector<sc2::Point3D>           mpc_expansions;
 
     sc2::Point3D                        mv_startLocation;

@@ -439,7 +439,15 @@ void    SCV::divide(void)
 void	SCV::revengeSCV(const sc2::Point2D& r_target)
 {
 	sc2::Units	p_scvs = mpc_observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_SCV));
+	sc2::Units	p_marines = mpc_observation->GetUnits(sc2::Unit::Alliance::Self, sc2::IsUnit(sc2::UNIT_TYPEID::TERRAN_MARINE));
 	bool		toFar = true;
+
+	for (const auto& rp_marine : p_marines)
+	{
+		//If they are already attacking, break
+		if (rp_marine->orders.size() == 0)
+			mpc_action->UnitCommand(rp_marine, sc2::ABILITY_ID::ATTACK, r_target);
+	}
 
 	for (const auto& rp_scv : p_scvs)
 	{

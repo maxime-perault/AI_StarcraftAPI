@@ -21,7 +21,7 @@ int main(int argc, char* argv[])
 
 	coordinator.SetParticipants({
 		CreateParticipant(sc2::Race::Terran, &bot),
-		CreateComputer(sc2::Race::Terran, sc2::Difficulty::VeryHard)
+		CreateComputer(sc2::Race::Terran, sc2::Difficulty::MediumHard)
 	});
 
 	// Start the game.
