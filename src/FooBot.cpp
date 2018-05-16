@@ -1,6 +1,8 @@
 
 #include "FooBot.h"
 
+using namespace masterchief;
+
 FooBot::FooBot() : mv_restarts(0)
 {
 	mpc_action = Actions();
@@ -31,6 +33,15 @@ void FooBot::OnGameStart()
 
 	mv_nb_refinery = 0;
 	mv_current_nb_refinery = 0;
+
+	mv_nb_armory = 0;
+	mv_current_nb_armory = 0;
+
+	mv_nb_engine = 0;
+	mv_current_nb_engine = 0;
+
+	mv_nb_factory = 0;
+	mv_current_nb_factory = 0;
 
 	mv_timer_rebuild = 0;
 
@@ -70,6 +81,11 @@ void	FooBot::OnUnitIdle(const sc2::Unit* p_unit)
 			mpc_action->UnitCommand(p_unit, sc2::ABILITY_ID::TRAIN_MARINE);
 			mpc_action->UnitCommand(p_unit, sc2::ABILITY_ID::RALLY_BUILDING, mv_startLocation);
 		}
+		case sc2::UNIT_TYPEID::TERRAN_ENGINEERINGBAY:
+		{
+			mpc_action->UnitCommand(p_unit, sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYWEAPONS);
+			mpc_action->UnitCommand(p_unit, sc2::ABILITY_ID::RESEARCH_TERRANINFANTRYARMOR);
+		}
 		default: break;
 	}
 }
@@ -99,6 +115,21 @@ void	FooBot::OnBuildingConstructionComplete(const sc2::Unit* p_unit)
 		case sc2::UNIT_TYPEID::TERRAN_SUPPLYDEPOT:
 		{
 			++mv_nb_supplies;
+			break;
+		}
+		case sc2::UNIT_TYPEID::TERRAN_ENGINEERINGBAY:
+		{
+			++mv_nb_engine;
+			break;
+		}
+		case sc2::UNIT_TYPEID::TERRAN_ARMORY:
+		{
+			++mv_nb_armory;
+			break;
+		}
+		case sc2::UNIT_TYPEID::TERRAN_FACTORY:
+		{
+			++mv_nb_factory;
 			break;
 		}
 		default: break;
@@ -133,7 +164,7 @@ void	FooBot::OnUnitDestroyed(const sc2::Unit* p_unit)
 				mv_nb_barracks = 0;
 				mv_current_nb_barracks = 0;
 			}
-
+			mc_scv.revengeSCV(p_unit->pos);
 			mv_timer_rebuild = 20;
 			break;
 		}
@@ -151,7 +182,7 @@ void	FooBot::OnUnitDestroyed(const sc2::Unit* p_unit)
 				mv_nb_ccs = 0;
 				mv_current_nb_ccs = 0;
 			}
-
+			mc_scv.revengeSCV(p_unit->pos);
 			mv_timer_rebuild = 20;
 			break;
 		}
@@ -169,7 +200,7 @@ void	FooBot::OnUnitDestroyed(const sc2::Unit* p_unit)
 				mv_nb_supplies = 0;
 				mv_current_nb_supplies = 0;
 			}
-
+			mc_scv.revengeSCV(p_unit->pos);
 			mv_timer_rebuild = 20;
 			break;
 		}
@@ -187,7 +218,61 @@ void	FooBot::OnUnitDestroyed(const sc2::Unit* p_unit)
 				mv_nb_refinery = 0;
 				mv_current_nb_refinery = 0;
 			}
+			mc_scv.revengeSCV(p_unit->pos);
+			mv_timer_rebuild = 20;
+			break;
+		}
+		case sc2::UNIT_TYPEID::TERRAN_ENGINEERINGBAY:
+		{
+			if (p_unit->build_progress == 1.f)
+			{
+				--mv_nb_engine;
+			}
+			--mv_current_nb_engine;
 
+			if (mv_current_nb_engine < 0
+				|| mv_nb_engine < 0)
+			{
+				mv_nb_engine = 0;
+				mv_current_nb_engine = 0;
+			}
+			mc_scv.revengeSCV(p_unit->pos);
+			mv_timer_rebuild = 20;
+			break;
+		}
+		case sc2::UNIT_TYPEID::TERRAN_ARMORY:
+		{
+			if (p_unit->build_progress == 1.f)
+			{
+				--mv_nb_armory;
+			}
+			--mv_current_nb_armory;
+
+			if (mv_current_nb_armory < 0
+				|| mv_nb_armory < 0)
+			{
+				mv_nb_armory = 0;
+				mv_current_nb_armory = 0;
+			}
+			mc_scv.revengeSCV(p_unit->pos);
+			mv_timer_rebuild = 20;
+			break;
+		}
+		case sc2::UNIT_TYPEID::TERRAN_FACTORY:
+		{
+			if (p_unit->build_progress == 1.f)
+			{
+				--mv_nb_factory;
+			}
+			--mv_current_nb_factory;
+
+			if (mv_current_nb_factory < 0
+				|| mv_nb_factory < 0)
+			{
+				mv_nb_factory = 0;
+				mv_current_nb_factory = 0;
+			}
+			mc_scv.revengeSCV(p_unit->pos);
 			mv_timer_rebuild = 20;
 			break;
 		}
@@ -255,17 +340,38 @@ void	FooBot::OnStep()
 	std::cout << "nb refineries: " << mv_nb_refinery << std::endl;
 	std::cout << "nb supplies: " << mv_nb_supplies << std::endl;
 	std::cout << "nb barracks: " << mv_nb_barracks << std::endl;
+	std::cout << "nb armories: " << mv_nb_armory << std::endl;
 	std::cout << "------------------" << std::endl;
 
 	if (mv_timer_rebuild == 0)
 	{
-		//BUILD SUPPLY
-		if ((mpc_observation->GetMinerals() >= 100)
-			&& (mpc_observation->GetFoodUsed() >= (next_food - 2))
-			&& (mv_current_nb_supplies == mv_nb_supplies))
+		//BUILD CC
+		if ((mpc_observation->GetMinerals() >= 1000)
+			&& (mv_current_nb_ccs < 4)
+			&& (mv_current_nb_ccs == mv_nb_ccs))
 		{
-			if (mc_scv.TryBuildSupplyDepot() == true)
-				++mv_current_nb_supplies;
+			if (mc_scv.TryExpand(mpc_expansions) == true)
+				++mv_current_nb_ccs;
+		}
+
+		//BUILD ENGINE
+		else if ((mpc_observation->GetMinerals() >= 100)
+			&& (mv_current_nb_ccs >= 2)
+			&& (mv_current_nb_engine <= 0))
+		{
+			if (mc_scv.TryBuildEngineeringBay() == true)
+				++mv_current_nb_engine;
+		}
+
+		//BUILD ARMORY
+		else if ((mpc_observation->GetMinerals() >= 150)
+			&& (mpc_observation->GetVespene() >= 100)
+			&& (mv_current_nb_ccs >= 2)
+			&& (mv_nb_factory > 0)
+			&& (mv_current_nb_armory <= 0))
+		{
+			if (mc_scv.TryBuildArmory() == true)
+				++mv_current_nb_armory;
 		}
 
 		//BUILD REFINERY
@@ -277,22 +383,32 @@ void	FooBot::OnStep()
 				++mv_current_nb_refinery;
 		}
 
-		//BUILD BARRACKS
-		else if ((mpc_observation->GetMinerals() >= 150)
-			&& (mv_current_nb_barracks < (mv_nb_ccs * 2))
-			&& (mv_current_nb_barracks == mv_nb_barracks))
+		//BUILD SUPPLY
+		else if ((mpc_observation->GetMinerals() >= 100)
+			&& (mpc_observation->GetFoodUsed() >= (next_food - 2))
+			&& (mv_current_nb_supplies == mv_nb_supplies))
 		{
-			if (mc_scv.TryBuildBarracks() == true)
-				++mv_current_nb_barracks;
+			if (mc_scv.TryBuildSupplyDepot() == true)
+				++mv_current_nb_supplies;
 		}
 
-		//BUILD CC
-		else if ((mpc_observation->GetMinerals() >= 1000)
-			&& (mv_current_nb_ccs < 4)
-			&& (mv_current_nb_ccs == mv_nb_ccs))
+		else if (mpc_observation->GetMinerals() >= 150)
 		{
-			if (mc_scv.TryExpand(mpc_expansions) == true)
-				++mv_current_nb_ccs;
+			//BUILD BARRACKS
+			if ((mv_current_nb_barracks < (mv_nb_ccs * 2))
+				&& (mv_current_nb_barracks == mv_nb_barracks))
+			{
+				if (mc_scv.TryBuildBarracks() == true)
+					++mv_current_nb_barracks;
+			}
+			//BUILD FACTORY
+			else if ((mv_current_nb_factory == 0)
+				&& (mv_current_nb_factory == mv_nb_factory)
+				&& (mv_nb_barracks > 0))
+			{
+				if (mc_scv.TryBuildFactory() == true)
+					++mv_current_nb_factory;
+			}
 		}
 
 		//ATTACK

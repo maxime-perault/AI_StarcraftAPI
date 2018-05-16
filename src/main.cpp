@@ -17,11 +17,11 @@ int main(int argc, char* argv[])
 	}
 
 	// Add the custom bots, it will control the players.
-	FooBot bot;
+	masterchief::FooBot bot;
 
 	coordinator.SetParticipants({
 		CreateParticipant(sc2::Race::Terran, &bot),
-		CreateComputer(sc2::Race::Terran, sc2::Difficulty::MediumHard)
+		CreateComputer(sc2::Race::Terran, sc2::Difficulty::Medium)
 	});
 
 	// Start the game.

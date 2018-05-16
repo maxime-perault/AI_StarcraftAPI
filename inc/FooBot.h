@@ -16,50 +16,64 @@
 /*
 ** This is the Core of IA settings
 */
-class FooBot : public sc2::Agent
+namespace masterchief
 {
-private:
-    SCV         mc_scv;
+    using namespace masterchiefTool;
 
-    int mv_nb_ccs;
-    int mv_current_nb_ccs;
+    class FooBot : public sc2::Agent
+    {
+    private:
+        SCV         mc_scv;
 
-    int mv_nb_barracks;
-    int mv_current_nb_barracks;
+        int mv_nb_ccs;
+        int mv_current_nb_ccs;
 
-    int mv_nb_supplies;
-    int mv_current_nb_supplies;
+        int mv_nb_barracks;
+        int mv_current_nb_barracks;
 
-    int mv_nb_refinery;
-    int mv_current_nb_refinery;
+        int mv_nb_supplies;
+        int mv_current_nb_supplies;
 
-    sc2::ActionInterface*               mpc_action;
-    const sc2::ObservationInterface*    mpc_observation;
-    sc2::ObserverActionInterface*       mpc_action_observation;
-    sc2::QueryInterface*                mpc_query;
-    sc2::GameInfo                       mc_gameinfo;
-    std::vector<sc2::Point3D>           mpc_expansions;
+        int mv_nb_refinery;
+        int mv_current_nb_refinery;
 
-    sc2::Point3D                        mv_startLocation;
+        int mv_nb_armory;
+        int mv_current_nb_armory;
 
-    int     mv_timer_rebuild;
+        int mv_nb_engine;
+        int mv_current_nb_engine;
 
-public:
-    // Member VAR
-    uint32_t    mv_restarts;
+        int mv_nb_factory;
+        int mv_current_nb_factory;
 
-    // CTOR & DTOR
-    FooBot();
-    ~FooBot();
+        sc2::ActionInterface*               mpc_action;
+        const sc2::ObservationInterface*    mpc_observation;
+        sc2::ObserverActionInterface*       mpc_action_observation;
+        sc2::QueryInterface*                mpc_query;
+        sc2::GameInfo                       mc_gameinfo;
+        std::vector<sc2::Point3D>           mpc_expansions;
 
-    // Member Funcs
-    virtual void OnGameStart() final;
-    virtual void OnUnitIdle(const sc2::Unit* p_unit) final;
-    virtual void OnUnitCreated(const sc2::Unit* p_unit) final;
-    virtual void OnUnitDestroyed(const sc2::Unit* p_unit) final;
-    virtual void OnBuildingConstructionComplete(const sc2::Unit* p_unit) final;
-    virtual void OnStep() final;
-    virtual void OnGameEnd() final;
-};
+        sc2::Point3D                        mv_startLocation;
+
+        int     mv_timer_rebuild;
+
+    public:
+        // Member VAR
+        uint32_t    mv_restarts;
+
+        // CTOR & DTOR
+        FooBot();
+        ~FooBot();
+
+        // Member Funcs
+        virtual void OnGameStart() final;
+        virtual void OnUnitIdle(const sc2::Unit* p_unit) final;
+        virtual void OnUnitCreated(const sc2::Unit* p_unit) final;
+        virtual void OnUnitDestroyed(const sc2::Unit* p_unit) final;
+        virtual void OnBuildingConstructionComplete(const sc2::Unit* p_unit) final;
+        virtual void OnStep() final;
+        virtual void OnGameEnd() final;
+    };
+}
 
 #endif //!FOOBOT_H_

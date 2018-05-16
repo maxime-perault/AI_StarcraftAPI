@@ -1,6 +1,8 @@
 
 #include "SCV.h"
 
+using namespace masterchiefTool;
+
 SCV::SCV(sc2::ActionInterface* action, const sc2::ObservationInterface* observation, sc2::QueryInterface* query)
 	: mpc_action(action), mpc_observation(observation), mpc_query(query)
 {
@@ -95,7 +97,7 @@ bool    SCV::TryBuildStructure(sc2::ABILITY_ID structure)
 		std::cout << "Try again" << std::endl;
 		rx = sc2::GetRandomScalar();
 		ry = sc2::GetRandomScalar();
-		build_location = p_ccs[rand_a_b(0, p_ccs.size())]->pos;
+		//build_location = p_ccs[rand_a_b(0, p_ccs.size())]->pos;
 		target = sc2::Point2D(build_location.x + rx * 15.0f, build_location.y + ry * 15.0f);
 	}
 	mpc_action->UnitCommand(p_unit_to_build,
@@ -156,6 +158,45 @@ bool    SCV::TryBuildSupplyDepot(void)
 	return false;
 }
 
+bool    SCV::TryBuildEngineeringBay(void)
+{
+	std::cout << "------------" << std::endl;
+	std::cout << "TRY ENGINEERINGBAY" << std::endl;
+	std::cout << "------------" << std::endl;
+
+	if (mpc_observation->GetMinerals() >= 100)
+	{
+		if (TryBuildStructure(sc2::ABILITY_ID::BUILD_ENGINEERINGBAY) == true)
+		{
+			std::cout << "SUCCESS" << std::endl;
+			return true;
+		}
+
+	}
+	std::cout << "FAIL" << std::endl;
+	return false;
+}
+
+bool    SCV::TryBuildArmory(void)
+{
+	std::cout << "------------" << std::endl;
+	std::cout << "TRY ARMORY" << std::endl;
+	std::cout << "------------" << std::endl;
+
+	if (mpc_observation->GetMinerals() >= 150 &&
+		mpc_observation->GetVespene() >= 100)
+	{
+		if (TryBuildStructure(sc2::ABILITY_ID::BUILD_ARMORY) == true)
+		{
+			std::cout << "SUCCESS" << std::endl;
+			return true;
+		}
+
+	}
+	std::cout << "FAIL" << std::endl;
+	return false;
+}
+
 bool    SCV::TryBuildBarracks(void)
 {
 	std::cout << "------------" << std::endl;
@@ -165,6 +206,25 @@ bool    SCV::TryBuildBarracks(void)
 	if (mpc_observation->GetMinerals() >= 150)
 	{
 		if (TryBuildStructure(sc2::ABILITY_ID::BUILD_BARRACKS) == true)
+		{
+			std::cout << "SUCCESS" << std::endl;
+			return true;
+		}
+
+	}
+	std::cout << "FAIL" << std::endl;
+	return false;
+}
+
+bool    SCV::TryBuildFactory(void)
+{
+	std::cout << "------------" << std::endl;
+	std::cout << "TRY FACTORY" << std::endl;
+	std::cout << "------------" << std::endl;
+	// Try to build a supply depot only if the population need it
+	if (mpc_observation->GetMinerals() >= 150)
+	{
+		if (TryBuildStructure(sc2::ABILITY_ID::BUILD_FACTORY) == true)
 		{
 			std::cout << "SUCCESS" << std::endl;
 			return true;
